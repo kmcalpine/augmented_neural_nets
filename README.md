@@ -1,1 +1,1 @@
-"Augmented neurals nets in a competitive domain" 
+"Evolving neurals nets in a competitive domain" 
