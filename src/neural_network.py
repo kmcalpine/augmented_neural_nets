@@ -1,4 +1,13 @@
 ﻿from dataclasses import dataclass
+from dataclasses import field
+import collections
+
+@dataclass
+class Innovations:
+    number: int = 0
+    found: {} = field(default_factory=dict)
+    
+#
 
 @dataclass
 class NeuronType:
@@ -16,18 +25,20 @@ class NeuronType:
             return 'output'
 
 @dataclass
-class Connection:
-    '''Class for a Neuron's connections.'''
-    incoming: [int]
-    outgoing: [int]
-
-@dataclass
 class Neuron:
     '''Class to represent the structure of a neuron.'''
-    weight: float
-    connections: Connection
+    value: float
+    connections: []
     neuron_type: NeuronType
     neuron_index: int
+
+@dataclass
+class Connection:
+    '''Class for a Neuron's connections.'''
+    from_n: Neuron
+    to_n: Neuron
+    weight: float 
+    innovation: int
 
 @dataclass
 class NeuralNetwork:
@@ -35,21 +46,47 @@ class NeuralNetwork:
     output_neurons: int
     network_connections: [Connection]
     network_neurons: [Neuron]
+    innovation: Innovations = Innovations
+    node_index: int = 0
 
-n_weight = 0.1
-n_connection = Connection([], [])
-n_type = NeuronType(1,0,0)
-n = Neuron(n_weight, n_connection, n_type, 1)
+    def construct(self):
 
-n_weight = 0.25
-n_connection = Connection([], [])
-n_type = NeuronType(0,0,1)
-n2 = Neuron(n_weight, n_connection, n_type, 2)
+        def set_neurons():
+            for i in range(self.input_neurons+self.output_neurons):
+                if i < self.input_neurons:
+                    
+                    n_type = NeuronType(1,0,0)
+                    n = Neuron(0, [], n_type, self.node_index)
 
-n.connections.outgoing.append(2)
-n2.connections.incoming.append(1)
+                else:
+                    n_type = NeuronType(0,0,1)
+                    n = Neuron(0, [], n_type, self.node_index)
 
-neural_network = NeuralNetwork(0, 0, [], [])
-print(n)
-print(n2)
-print(n.__doc__)
+                self.node_index += 1
+                self.network_neurons.append(n)
+
+        
+        def set_connections():
+            for i in range(self.input_neurons):
+                for j in range(self.input_neurons, self.input_neurons+self.output_neurons):
+                        
+                    conn = Connection(
+                                            self.network_neurons[i],
+                                            self.network_neurons[j],
+                                            0.5,
+                                            self.innovation.number
+                                            )
+
+                    self.network_connections.append(conn)
+
+        set_neurons()
+        set_connections()
+
+neural_network = NeuralNetwork(5, 5, [], [])
+neural_network.construct()
+
+for neurons in neural_network.network_neurons:
+    print(neurons)
+
+for conns in neural_network.network_connections:
+    print(conns)
