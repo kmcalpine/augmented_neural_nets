@@ -28,7 +28,8 @@ class NeuronType:
 class Neuron:
     '''Class to represent the structure of a neuron.'''
     value: float
-    connections: []
+    in_connections: []
+    out_connections: []
     neuron_type: NeuronType
     neuron_index: int
 
@@ -56,11 +57,11 @@ class NeuralNetwork:
                 if i < self.input_neurons:
                     
                     n_type = NeuronType(1,0,0)
-                    n = Neuron(0, [], n_type, self.node_index)
+                    n = Neuron(1, [], [], n_type, self.node_index)
 
                 else:
                     n_type = NeuronType(0,0,1)
-                    n = Neuron(0, [], n_type, self.node_index)
+                    n = Neuron(0, [], [], n_type, self.node_index)
 
                 self.node_index += 1
                 self.network_neurons.append(n)
@@ -80,18 +81,38 @@ class NeuralNetwork:
                     self.innovation.number += 1
                     self.innovation.found[str(i)+'->'+str(j)] = conn.innovation
                     self.network_connections.append(conn)
+                    self.network_neurons[i].out_connections.append(conn)
+                    self.network_neurons[j].in_connections.append(conn)
 
         set_neurons()
         set_connections()
 
+
+    def predict(self, neuron_inputs):
+        
+        for i in range(len(neuron_inputs)):
+            
+            if neuron_inputs[i].from_n.neuron_type != 'input':  
+                self.predict(neuron_inputs[i].from_n.in_connections)
+            neuron_inputs[i].to_n.value += neuron_inputs[i].from_n.value * neuron_inputs[i].weight
+
+            if i == len(neuron_inputs)-1:
+                #ReLU
+                neuron_inputs[i].to_n.value = max(0, neuron_inputs[i].to_n.value)
+
 neural_network = NeuralNetwork(5, 5, [], [])
 neural_network.construct()
 
-for neurons in neural_network.network_neurons:
-    print(neurons)
 
-for conns in neural_network.network_connections:
-    print(conns)
 
-for inno in neural_network.innovation.found:
-    print(inno, neural_network.innovation.found[inno])
+for i in range(neural_network.input_neurons,
+               neural_network.input_neurons+neural_network.output_neurons
+               ):
+
+    if neural_network.network_neurons[i].neuron_type.output:
+
+        neural_network.predict(neural_network.network_neurons[i].in_connections)
+
+
+for i in range(neural_network.input_neurons+neural_network.output_neurons):
+    print(neural_network.network_neurons[i].value)
