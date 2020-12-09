@@ -1,12 +1,12 @@
 ﻿from dataclasses import dataclass
 from dataclasses import field
+from typing import Dict
 import collections
 
 @dataclass
 class Innovations:
-    number: int = 0
-    found: {} = field(default_factory=dict)
-    
+    number: int
+    found: Dict = field(default_factory=dict)
 #
 
 @dataclass
@@ -46,11 +46,11 @@ class NeuralNetwork:
     output_neurons: int
     network_connections: [Connection]
     network_neurons: [Neuron]
-    innovation: Innovations = Innovations
+    innovation: Innovations = Innovations(0, {})
     node_index: int = 0
 
     def construct(self):
-
+        
         def set_neurons():
             for i in range(self.input_neurons+self.output_neurons):
                 if i < self.input_neurons:
@@ -77,6 +77,8 @@ class NeuralNetwork:
                                             self.innovation.number
                                             )
 
+                    self.innovation.number += 1
+                    self.innovation.found[str(i)+'->'+str(j)] = conn.innovation
                     self.network_connections.append(conn)
 
         set_neurons()
@@ -90,3 +92,6 @@ for neurons in neural_network.network_neurons:
 
 for conns in neural_network.network_connections:
     print(conns)
+
+for inno in neural_network.innovation.found:
+    print(inno, neural_network.innovation.found[inno])
