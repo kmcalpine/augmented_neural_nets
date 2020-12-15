@@ -77,6 +77,7 @@ class NeuralNetwork:
                 self.node_index += 1
                 self.network_neurons.append(n)
 
+        # find a better implementation to remove duplicate code
         def set_connections():
             # set input to hidden neuron connections
             for i in range(self.input_neurons):
@@ -170,7 +171,55 @@ class NeuralNetwork:
 
                 from_m = self.network_neurons[m]
                 to_n = self.network_neurons[n]
-              
+
+            from_m = self.network_neurons[0]
+            to_n = self.network_neurons[22]
+            # test if a connection already exist' to this neuron
+            for i in range(len(to_n.in_connections)):
+                #print("i: " + str(i))
+                if from_m==to_n.in_connections[i].from_n: 
+                    #print("connection exists")
+                    return
+                if not to_n.neuron_type.output and to_n.neuron_index < to_n.in_connections[i].from_n.neuron_index:
+                    #print("i dont think this is correct")
+                    return
+            for i in range(len(to_n.out_connections)):
+                if from_m.neuron_index==to_n.in_connections[i].from_n.neuron_index: 
+                    return
+                if not to_n.out_connections[i].to_n.neuron_type.output and to_n.neuron_index > to_n.out_connections[i].to_n.neuron_index:
+                    #print("i dont think this is correct")
+                    return
+            # add new connection from m to n
+            # check if innovation exist'
+            if str(from_m.neuron_index)+"->"+str(to_n.neuron_index) in self.innovation.found:
+                #print("inno")
+                #print(self.innovation.found[str(from_m.neuron_index)+"->"+str(to_n.neuron_index)])
+
+                conn = Connection(
+                                    from_m, # from neuron
+                                    to_n, # to neuron
+                                    (random()*2)-1, # connection weight
+                                    self.innovation.found[str(from_m.neuron_index)+"->"+str(to_n.neuron_index)] # innovation number
+                                    )
+
+                self.network_connections.append(conn)
+                from_m.out_connections.append(conn)
+                to_n.in_connections.append(conn)
+
+            else:
+                #print("NO")
+                conn = Connection(
+                                    from_m, # from neuron
+                                    to_n, # to neuron
+                                    (random()*2)-1, # connection weight
+                                    self.innovation.number # innovation number
+                                    )
+
+                self.innovation.found[str(from_m.neuron_index)+"->"+str(to_n.neuron_index)] = self.innovation.number
+                self.innovation.number += 1
+                self.network_connections.append(conn)
+                from_m.out_connections.append(conn)
+                to_n.in_connections.append(conn)
 
         def remove_connection(x): # 'x' is the given connection to remove from the network
             conn = self.network_connections[x]
@@ -179,10 +228,13 @@ class NeuralNetwork:
             self.network_connections.pop(x)
 
         mutations = {0 : mutate_weight, 1 : new_connection, 2 : remove_connection}
-        mutations[1](val) # randomly select a mutation method
+        for n in range(20):
+            print(self.innovation.found)
+            mutations[1](val) # randomly select a mutation method
+            mutations[2](200) # randomly select a mutation method
         
 
-neural_network = NeuralNetwork(10, 5, 10, [], [])
+neural_network = NeuralNetwork(10, 10, 10, [], [])
 neural_network.construct()
 neural_network.mutate()
 
