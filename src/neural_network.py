@@ -1,7 +1,10 @@
 ﻿from dataclasses import dataclass
 from dataclasses import field
+from random import random
 from typing import Dict
 import collections
+import math
+
 
 @dataclass
 class Innovations:
@@ -82,7 +85,7 @@ class NeuralNetwork:
                     conn = Connection(
                                         self.network_neurons[i], # from neuron
                                         self.network_neurons[j], # to neuron
-                                        1, # connection weight
+                                        (random()*2)-1, # connection weight
                                         self.innovation.number # innovation number
                                         )
 
@@ -100,7 +103,7 @@ class NeuralNetwork:
                     conn = Connection(
                                         self.network_neurons[i], # from neuron
                                         self.network_neurons[j], # to neuron
-                                        1, # connection weight
+                                        (random()*2)-1, # connection weight
                                         self.innovation.number # innovation number
                                         )
 
@@ -117,7 +120,7 @@ class NeuralNetwork:
                     conn = Connection(
                                         self.network_neurons[i], # from neuron
                                         self.network_neurons[j], # to neuron
-                                        1, # connection weight
+                                        (random()*2)-1, # connection weight
                                         self.innovation.number # innovation number
                                         )
 
@@ -128,7 +131,7 @@ class NeuralNetwork:
                     self.network_neurons[j].in_connections.append(conn)
 
         set_neurons()
-        set_connections()
+        set_fixed_connections()
 
 
     def predict(self, neuron_inputs):
@@ -142,8 +145,47 @@ class NeuralNetwork:
                 # apply ReLU
                 neuron_inputs[i].to_n.value = max(0, neuron_inputs[i].to_n.value)
 
-neural_network = NeuralNetwork(5, 0, 5, [], [])
+
+    def mutate(self):
+        val = 5
+        def mutate_weight(x):
+            # randomly select a network connection and mutate its weight
+            conn = self.network_connections[math.floor(random()*len(self.network_connections))]
+            conn.weight += ((random()*2)-1)
+            if conn.weight < -1:
+                conn.weight = -1
+            elif conn.weight > 1:
+                conn.weight = 1
+    
+        def new_connection(x):
+            m = math.floor(random()*len(self.network_neurons))
+            n = math.floor(random()*(len(self.network_neurons)-self.input_neurons))+self.input_neurons
+
+            from_m = self.network_neurons[m]
+            to_n = self.network_neurons[n]
+
+            while n <= m or from_m.neuron_type==to_n.neuron_type or from_m.neuron_type.output:
+                m = math.floor(random()*len(self.network_neurons))
+                n = math.floor(random()*(len(self.network_neurons)-self.input_neurons))+self.input_neurons
+
+                from_m = self.network_neurons[m]
+                to_n = self.network_neurons[n]
+              
+
+        def remove_connection(x): # 'x' is the given connection to remove from the network
+            conn = self.network_connections[x]
+            conn.from_n.out_connections.pop(conn.from_n.out_connections.index(conn))
+            conn.to_n.in_connections.pop(conn.to_n.in_connections.index(conn))
+            self.network_connections.pop(x)
+
+        mutations = {0 : mutate_weight, 1 : new_connection, 2 : remove_connection}
+        mutations[1](val) # randomly select a mutation method
+        
+
+neural_network = NeuralNetwork(10, 5, 10, [], [])
 neural_network.construct()
+neural_network.mutate()
+
 
 for i in range(neural_network.input_neurons,
                neural_network.network_size()
