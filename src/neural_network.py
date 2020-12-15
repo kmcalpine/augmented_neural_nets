@@ -157,3 +157,4 @@ for i in range(neural_network.input_neurons+neural_network.output_neurons):
     print(neural_network.network_neurons[i].value)
 
 print(len(neural_network.network_connections))
+
