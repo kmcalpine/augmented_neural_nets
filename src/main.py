@@ -11,6 +11,8 @@ class NetworkHandler:
     population_b: List = field(default_factory=list)
 
     def pr(self, a):
+        # function to print cyclic objects
+        # src: https://stackoverflow.com/questions/22736557/printing-cyclic-data-structures
 
         seen = set()
         def f(a, indent):
