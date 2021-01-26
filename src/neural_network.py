@@ -48,6 +48,13 @@ class Connection:
     weight: float 
     innovation: int
 
+    def mutate_weight(self):
+        self.weight += ((random()*2)-1)*0.1
+        if self.weight < -1:
+            self.weight = -1
+        elif self.weight > 1:
+            self.weight = 1
+
 @dataclass
 class NeuralNetwork:
     input_neurons: int
@@ -158,11 +165,8 @@ class NeuralNetwork:
         def mutate_weight():
             # randomly select a network connection and mutate its weight
             conn = self.network_connections[math.floor(random()*len(self.network_connections))]
-            conn.weight += ((random()*2)-1)
-            if conn.weight < -1:
-                conn.weight = -1
-            elif conn.weight > 1:
-                conn.weight = 1
+            conn.mutate_weight()
+
 
         def create_new_connection(from_m, to_n, weight=(random()*2)-1):
             # check if innovation exist'

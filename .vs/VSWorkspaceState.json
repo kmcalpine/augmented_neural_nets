@@ -1,9 +1,9 @@
 {
+  "python.pythonPath": "/path/to/your/venv/bin/python",
   "ExpandedNodes": [
     "",
+    "\\Local settings (.vs)",
     "\\src"
   ],
-  "SelectedNode": "\\src\\neural_network.py",
-  "PreviewInSolutionExplorer": false,
-  "python.pythonPath": "/path/to/your/venv/bin/python"
+  "PreviewInSolutionExplorer": false
 }
