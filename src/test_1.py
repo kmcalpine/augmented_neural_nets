@@ -12,5 +12,6 @@ class Test_test_1(unittest.TestCase):
         self.test_conn.mutate_weight()
         self.assertTrue(-1.0 <= self.test_conn.weight <= 1.0)
 
+
 if __name__ == '__main__':
     unittest.main()
