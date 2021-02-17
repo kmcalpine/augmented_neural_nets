@@ -1,13 +1,28 @@
 ﻿import neural_network 
+import math
 from dataclasses import dataclass
 from dataclasses import field
+from random import random
 
-@dataclass
 class Position:
-    x: float
-    y: float 
 
-@dataclass
+    def __init__(self) -> None:
+        self.x = math.floor(random()*(random()*100))
+        self.y = math.floor(random()*(random()*100))
+        
+class Resource:
+    def __init__(self, p: Position):
+        self.position = p
+
 class Agent:
-    position: Position
-    brain: neural_network
+
+    def __init__(self, p: Position, b: neural_network) -> None:
+        self.position = p
+        self.brain = b
+        self.species = None
+        self.distance_resource = None
+        self.distance_agent = None
+        self.angle_resource = None
+        self.angle_agent = None
+        self.energy = 100
+        self.dead = False

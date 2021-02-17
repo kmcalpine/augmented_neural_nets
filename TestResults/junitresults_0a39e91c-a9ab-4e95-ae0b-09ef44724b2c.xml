@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="0.146" timestamp="2021-01-27T14:47:51.658214" hostname="DESKTOP-QF56S91"><testcase classname="src.test_1.Test_test_1" name="test_network_size" file="src\test_1.py" line="4" time="0.005"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase></testsuite></testsuites>

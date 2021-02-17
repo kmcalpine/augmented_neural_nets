@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.086" timestamp="2021-01-27T14:36:30.041258" hostname="DESKTOP-QF56S91"><testcase classname="src.test_1.Test_test_1" name="test_network_size" file="src\test_1.py" line="4" time="0.001"><failure message="NameError: name 'innovations' is not defined">self = &lt;test_1.Test_test_1 testMethod=test_network_size&gt;
+
+    def test_network_size(self):
+        global_innovations = Innovations(0, {}) # initialize global innovations object
+&gt;       self.nn = NeuralNetwork(5, 0, 5, [], [], innovations)
+E       NameError: name 'innovations' is not defined
+
+src\test_1.py:7: NameError</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase></testsuite></testsuites>

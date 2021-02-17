@@ -63,8 +63,8 @@ class NeuralNetwork:
     network_connections: [Connection]
     network_neurons: [Neuron]
     innovation: Innovations
-    node_index: int = 0
-    fitness_score: float = 0.0
+    node_index: int
+    fitness_score: float
 
     def network_size(self):
         return self.input_neurons + self.hidden_neurons + self.output_neurons
@@ -86,8 +86,23 @@ class NeuralNetwork:
                 self.node_index += 1
                 self.network_neurons.append(n)
 
-        # find a better implementation to remove duplicate code
-        def set_connections():
+        
+        def _new_connection(i: int, j: int, inno: int) -> None:
+
+            conn = Connection(
+                                self.network_neurons[i], # from neuron
+                                self.network_neurons[j], # to neuron
+                                (random()*2)-1, # connection weight
+                                inno # innovation number
+                                )
+
+            self.innovation.found[str(i)+'->'+str(j)] = conn.innovation
+            self.network_connections.append(conn)
+            self.network_neurons[i].out_connections.append(conn)
+            self.network_neurons[j].in_connections.append(conn)
+
+
+        def set_connections() -> None:
             # set input to hidden neuron connections
             for i in range(self.input_neurons):
                 for j in range(self.input_neurons, self.input_neurons+self.output_neurons):
@@ -96,56 +111,32 @@ class NeuralNetwork:
                     if not in_num:
                         in_num = self.innovation.number
                         self.innovation.number += 1  
-                        
-                    conn = Connection(
-                                        self.network_neurons[i], # from neuron
-                                        self.network_neurons[j], # to neuron
-                                        (random()*2)-1, # connection weight
-                                        in_num # innovation number
-                                        )
-
-                    self.innovation.found[str(i)+'->'+str(j)] = conn.innovation
-                    self.network_connections.append(conn)
-                    self.network_neurons[i].out_connections.append(conn)
-                    self.network_neurons[j].in_connections.append(conn)
+                    
+                    _new_connection(i, j, in_num)
         
-        def set_fixed_connections():
+
+
+        def set_fixed_connections() -> None:
             # set input to hidden neuron connections
             for i in range(self.input_neurons):
                 for j in range(self.input_neurons, self.input_neurons+self.hidden_neurons):
                         
-                    conn = Connection(
-                                        self.network_neurons[i], # from neuron
-                                        self.network_neurons[j], # to neuron
-                                        (random()*2)-1, # connection weight
-                                        self.innovation.number # innovation number
-                                        )
-
+                    _new_connection(i, j, self.innovation.number)
                     self.innovation.number += 1
-                    self.innovation.found[str(i)+'->'+str(j)] = conn.innovation
-                    self.network_connections.append(conn)
-                    self.network_neurons[i].out_connections.append(conn)
-                    self.network_neurons[j].in_connections.append(conn)
-
+  
             # set hidden to output neuron connections
             for i in range(self.input_neurons, self.input_neurons+self.hidden_neurons):
                 for j in range(self.input_neurons+self.hidden_neurons, self.input_neurons+self.hidden_neurons+self.output_neurons):
-                        
-                    conn = Connection(
-                                        self.network_neurons[i], # from neuron
-                                        self.network_neurons[j], # to neuron
-                                        (random()*2)-1, # connection weight
-                                        self.innovation.number # innovation number
-                                        )
-
+                     
+                    _new_connection(i, j, self.innovation.number)
                     self.innovation.number += 1
-                    self.innovation.found[str(i)+'->'+str(j)] = conn.innovation
-                    self.network_connections.append(conn)
-                    self.network_neurons[i].out_connections.append(conn)
-                    self.network_neurons[j].in_connections.append(conn)
 
         set_neurons()
-        set_connections()
+
+        if not self.hidden_neurons:
+            set_connections()
+        else:
+            set_fixed_connections()
 
 
     def predict(self, neuron_inputs):
@@ -159,14 +150,20 @@ class NeuralNetwork:
                 # apply ReLU
                 neuron_inputs[i].to_n.value = max(0, neuron_inputs[i].to_n.value)
 
+    def mutate_weight(self):
+        # randomly select a network connection and mutate its weight
+        conn = self.network_connections[math.floor(random()*len(self.network_connections))]
+        conn.mutate_weight()
 
     def mutate(self):
         val = 5
         def mutate_weight():
             # randomly select a network connection and mutate its weight
+            if len(self.network_connections) == 0:
+                return
+            print(len(self.network_connections))
             conn = self.network_connections[math.floor(random()*len(self.network_connections))]
             conn.mutate_weight()
-
 
         def create_new_connection(from_m, to_n, weight=(random()*2)-1):
             # check if innovation exist'
@@ -201,6 +198,7 @@ class NeuralNetwork:
                 to_n.in_connections.append(conn)
     
         def new_connection():
+            
             m = math.floor(random()*len(self.network_neurons))
             n = math.floor(random()*(len(self.network_neurons)-self.input_neurons))+self.input_neurons
 
@@ -214,46 +212,50 @@ class NeuralNetwork:
                 from_m = self.network_neurons[m]
                 to_m = self.network_neurons[n]
 
-            # test if a connection already exist' to this neuron
-            for i in range(len(to_m.in_connections)):
-                #print("i: " + str(to_m.in_connections[i].innovation))
-                if from_m is to_m.in_connections[i].from_n: 
+            for conn in from_m.out_connections:
+                if conn == to_m:
                     return
-                if not to_m.neuron_type.output and to_m.neuron_index < to_m.in_connections[i].from_n.neuron_index:
-                    #print("i dont think this is correct")
-                    return
-
-            for i in range(len(to_m.out_connections)):
-                if from_m.neuron_index==to_m.in_connections[i].from_n.neuron_index: 
-                    return
-                if not to_m.out_connections[i].to_m.neuron_type.output and to_m.neuron_index > to_m.out_connections[i].to_m.neuron_index:
-                    #print("i dont think this is correct")
-                    return
-            # add new connection from m to n
-           
+            print('add conn')
             create_new_connection(from_m, to_m)
 
-        def remove_connection(): # 'x' is the given connection to remove from the network
-
+        def remove_connection(): # remove a random connection from the network
+            print('remove conn')
             if len(self.network_connections)==0: return
+
             x = math.floor(random()*len(self.network_connections))
             conn = self.network_connections[x]
             
             for i, from_conns in enumerate(conn.from_n.out_connections):
                 
                 if from_conns.innovation==conn.innovation:
-                    print("innovation: " + str(from_conns.innovation))
                     conn.from_n.out_connections.pop(i)
 
             for i, to_conns in enumerate(conn.to_n.in_connections):
                 
                 if to_conns.innovation==conn.innovation:
-                    print("innovation: " + str(to_conns.innovation))
+                    conn.to_n.in_connections.pop(i)
+            
+            self.network_connections.pop(x)
+
+        def remove_given_connection(x): # 'x' is the given connection to remove from the network
+
+            if len(self.network_connections)==0: return
+            conn = self.network_connections[x]
+            
+            for i, from_conns in enumerate(conn.from_n.out_connections):
+                
+                if from_conns.innovation==conn.innovation:
+                    conn.from_n.out_connections.pop(i)
+
+            for i, to_conns in enumerate(conn.to_n.in_connections):
+                
+                if to_conns.innovation==conn.innovation:
                     conn.to_n.in_connections.pop(i)
             
             self.network_connections.pop(x)
 
         def check_conn_exists(from_m, to_m):
+            print('check')
             for i in range(len(from_m.out_connections)-1, -1, -1):
                 if from_m.out_connections[i].to_n==to_m:
                     return True
@@ -265,15 +267,8 @@ class NeuralNetwork:
                 x = math.floor(random()*len(self.network_neurons)-(self.input_neurons+self.output_neurons))
                 neuron = self.network_neurons[x+self.input_neurons+self.output_neurons]
 
-                neuron_inputs = []
-                r_connections = [] # keep track of which connections will be removed
-                for i in range(len(neuron.in_connections)-1, -1, -1):
-                    neuron_inputs.append((neuron.in_connections[i].from_n, neuron.in_connections[i].weight))
-                    r_connections.append(neuron.in_connections[i].innovation)
-                neuron_outputs = []
-                for i in range(len(neuron.out_connections)-1, -1, -1):
-                    neuron_outputs.append((neuron.out_connections[i].to_n, neuron.out_connections[i].weight))
-                    r_connections.append(neuron.out_connections[i].innovation)
+                neuron_inputs, r_in_connections = get_neuron_inputs(neuron) 
+                neuron_outputs, r_out_connections = get_neuron_outputs(neuron) 
 
                 for i in range(len(neuron_inputs)-1, -1, -1):
                     for j in range(len(neuron_outputs)-1, -1, -1):
@@ -284,17 +279,39 @@ class NeuralNetwork:
                             if not check_conn_exists(neuron_inputs[i][0], neuron_outputs[j][0]):
                                 create_new_connection(neuron_inputs[i][0], neuron_outputs[j][0], neuron_inputs[i][1])
                 
-                for inno in r_connections:
+                for inno in r_in_connections+r_out_connections:
                    for i, conn in enumerate(self.network_connections):
                        if inno==conn.innovation:
-                           remove_connection(i)
+                           remove_given_connection(i)
                            break
                 self.network_neurons.pop(x)
-         
+        
+        def get_neuron_inputs(neuron):
+            neuron_inputs = []
+            r_connections = [] # keep track of which connections will be removed
+            for i in range(len(neuron.in_connections)-1, -1, -1):
+                neuron_inputs.append((neuron.in_connections[i].from_n, neuron.in_connections[i].weight))
+                r_connections.append(neuron.in_connections[i].innovation)
+
+            return neuron_inputs, r_connections
+
+        def get_neuron_outputs(neuron):
+            neuron_outputs = []
+            r_connections = [] # keep track of which connections will be removed
+            for i in range(len(neuron.out_connections)-1, -1, -1):
+                neuron_outputs.append((neuron.out_connections[i].to_n, neuron.out_connections[i].weight))
+                r_connections.append(neuron.out_connections[i].innovation)
+
+            return neuron_outputs, r_connections
+
                 
         def add_neuron():
             # randomly select a connection to insert a neuron
+            print('add neuron')
+            if len(self.network_connections) == 0:
+                return
             idx = math.floor(random()*len(self.network_connections))
+            print(len(self.network_connections))
             conn = self.network_connections[idx]
             from_m = conn.from_n
             to_m = conn.to_n
@@ -319,8 +336,10 @@ class NeuralNetwork:
             conn_from = create_new_connection(from_m, n, weight)
             conn_to = create_new_connection(n, to_m, 1)
             
-        mutations = {0 : mutate_weight, 1 : new_connection, 2 : remove_connection, 3 : add_neuron, 4 : remove_neuron}
-        mutation_operation = randrange(5) # randomly select mutation operation
+        #mutations = {0 : mutate_weight, 1 : new_connection, 2 : remove_connection, 3 : add_neuron, 4 : remove_neuron}
+        mutations = {0 : new_connection, 1 : remove_connection}
+        mutation_operation = randrange(2) # randomly select mutation operation
+        #mutations[mutation_operation]() # apply mutation operation
         mutations[mutation_operation]() # apply mutation operation
 
 

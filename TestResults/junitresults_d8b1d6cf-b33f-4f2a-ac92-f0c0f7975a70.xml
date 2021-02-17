@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="0.044" timestamp="2021-01-27T14:36:03.025280" hostname="DESKTOP-QF56S91"><testcase classname="src.test_1.Test_test_1" name="test_weight_mutation" file="src\test_1.py" line="10" time="0.001"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase></testsuite></testsuites>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="227.424" timestamp="2021-01-27T14:42:19.431342" hostname="DESKTOP-QF56S91"><testcase classname="src.test_1.Test_test_1" name="test_network_size" file="src\test_1.py" line="4" time="227.183"><failure message="AssertionError: False is not true">self = &lt;test_1.Test_test_1 testMethod=test_network_size&gt;
+
+    def test_network_size(self):
+        self.global_innovations = Innovations(0, {}) # initialize global innovations object
+        self.nn = NeuralNetwork(5, 0, 5, [], [], self.global_innovations)
+    
+&gt;       self.assertTrue(self.nn.network_size == 10)
+E       AssertionError: False is not true
+
+src\test_1.py:9: AssertionError</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase></testsuite></testsuites>

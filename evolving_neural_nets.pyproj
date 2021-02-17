@@ -24,6 +24,9 @@
   <ItemGroup>
     <Compile Include="src\agent.py" />
     <Compile Include="src\main.py" />
+    <Compile Include="src\module1.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="src\neural_network.py" />
     <Compile Include="src\test_1.py">
       <SubType>Code</SubType>
