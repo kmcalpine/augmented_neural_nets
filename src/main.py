@@ -3,10 +3,8 @@ import agent
 import math
 import copy
 import argparse
-from dataclasses import dataclass
-from dataclasses import field
 from typing import List
-from random import random
+from random import random, randrange
 
 class NetworkHandler:
     def __init__(self, size):
@@ -15,6 +13,7 @@ class NetworkHandler:
         self.population_b = []
         self.resources = []
         self.count = 0
+        self._MUTATION_RATE = 0.33
 
     def pr(self, a):
         # function to print cyclic objects
@@ -45,9 +44,6 @@ class NetworkHandler:
                     print(s, k, v)
         f(a, 1)
 
-    def init_fixed_networks() -> None:
-        return
-
     def init_networks(self, population_size, hidden, innovations):
         for i in range(population_size):
             genome = neural_network.NeuralNetwork(6, hidden, 8, [], [], innovations, 0, 0)
@@ -66,6 +62,7 @@ class NetworkHandler:
             self.resources.append(resource)
 
     def init_distances(self) -> None:
+        '''Initialize agent distance to resource and other agent'''
         for i in range(self.network_size):
 
            a = self.population_a[i]
@@ -79,9 +76,9 @@ class NetworkHandler:
            a.distance_agent = self.get_distance(a, b)
            b.distance_agent = self.get_distance(b, a)
 
-           print(a.distance_resource)
 
     def get_distance(self, a, b) -> float:
+        '''Calculate and return distance.'''
         dist = math.sqrt(   (a.position.x - b.position.x) *
                             (a.position.x - b.position.x) +
                             (a.position.y - b.position.y) *
@@ -91,8 +88,8 @@ class NetworkHandler:
 
 
     def init_angles(self) -> None:
+        '''Initialize agent angles to resource and other agent'''
         for i in range(self.network_size):
-
            a = self.population_a[i]
            b = self.population_b[i]
            res = self.resources[i]
@@ -104,6 +101,7 @@ class NetworkHandler:
            b.angle_agent = self.get_angle(b, a)
 
     def get_angle(self, a, b) -> float:
+        '''Calculate and return angle.'''
         angle = math.atan2(a.position.y - b.position.y, a.position.x - b.position.x)
         angle = (angle / (math.pi*2)*360)+180
 
@@ -124,27 +122,32 @@ class NetworkHandler:
 
 
     def reset_network_neuron_values(self, inputs, genome) -> None:
-
+        '''Reset values calulated from previous iteration'''
         for neuron in genome.network_neurons:
             if neuron.neuron_type.input:
                 neuron.value = inputs.pop()
             else:
                 neuron.value = 0
-
-        
-
+  
     def get_network_output(self, genome) -> int:
+        '''Return maximum output index'''
         outputs = []
         for output_neuron in genome.network_neurons:
             if output_neuron.neuron_type.output:
-                genome.predict(output_neuron.in_connections)
+                genome.predict(output_neuron.in_connections) # propogate inputs through network
                 outputs.append(output_neuron.value)
-           
+        
+        if not outputs:
+            return -1
         return max(range(len(outputs)), key=lambda i: outputs[i])
         
 
     def action_update(self, action, _agent) -> None:
+        '''Apply network output to agent'''
         _agent.energy -= 1;
+
+        if action == -1:
+            return
 
         def action_0():
             if _agent.position.x < 100:
@@ -182,7 +185,7 @@ class NetworkHandler:
                 _agent.position.x -= (math.sqrt(2)/2)
                 _agent.position.y -= (math.sqrt(2)/2)
 
-
+        #maps to the 8 possible network outputs, checks if within bounds of domain size
         action_switch = {
             0: action_0,
             1: action_1,
@@ -199,6 +202,7 @@ class NetworkHandler:
 
 
     def update_fitness(self, a, b, res) -> None:
+        '''Calculate current fitness score of genome based on last action.'''
         dist_agent = self.get_distance(a, b)      
         dist_resource = self.get_distance(a, res)
 
@@ -210,14 +214,15 @@ class NetworkHandler:
             a.brain.fitness_score += 0.9
         if dist_resource <= 4:
             a.brain.fitness_score += 150
-            a.energy += 0
+            a.energy += 100
             pos = agent.Position()
             res.position = pos
         if a.brain.fitness_score < 0:
             a.brain.fitness_score = 0
+        
 
     def update(self, _agent) -> None:
-        
+        '''Methods to initialize network inputs.'''
         network_inputs = [
                 _agent.distance_resource,
                 _agent.distance_agent,
@@ -237,8 +242,7 @@ class NetworkHandler:
         for input in network_inputs:
             new_inputs.append((input-input_min)/range)
 
-
-        #n = self.normalize_inputs(network_inputs)
+        n = self.normalize_inputs(network_inputs)
 
         self.reset_network_neuron_values(new_inputs, _agent.brain)
         action = self.get_network_output(_agent.brain)
@@ -257,9 +261,9 @@ class NetworkHandler:
             pos = agent.Position()
             res.position = pos
 
-    def calculate_population(self):
-
-        if self.count == 2:
+    def calculate_population(self) -> None:
+        '''Method to call the respective update functions for agents'''
+        if self.count == self.network_size*2:
             return
 
         for i in range(len(self.population_a)):
@@ -281,38 +285,35 @@ class NetworkHandler:
 
         self.init_distances()
         self.init_angles()
-        self.reset_positions()
 
 
     def sort_fitness(self) -> None:
+        '''Method to sort population of genomes by fitness scores
+           allowing top % performers to be selected for passing to next generation   
+        '''
         self.population_a.sort(key=lambda x: x.brain.fitness_score, reverse=True)
         self.population_b.sort(key=lambda x: x.brain.fitness_score, reverse=True)
 
-if __name__ == '__main__':
-    network_size = 1
-
-    global_innovations = neural_network.Innovations(0, {}) # initialize global innovations object
-    network_handler = NetworkHandler(network_size)
-    network_handler.init_networks(network_size, 0, global_innovations) #create evolving networks
-    network_handler.init_networks(network_size, 5, global_innovations) #create fixed networks
-    network_handler.init_resources(network_size) #create resources
-    network_handler.init_distances()
-    network_handler.init_angles()
-    
-
-    for i in range(100):
-        print('here', str(i))
-        while network_handler.count < 2:
-            network_handler.calculate_population()
-        print('after')
-        network_handler.count = 0
-        network_handler.sort_fitness()
-    
+    def generate_new_fixed_genomes(self) -> None:
+        for _agent in self.population_b:
+            _agent.energy = 100
+            _agent.dead = False
+            _agent.brain.fitness_score = 0
+            _agent.brain.mutate_weight()
+        
+    def generate_new_genomes(self) -> None:
         new_pop = []
-        for el in network_handler.population_a:
-            dc = copy.deepcopy(el)
-            dc.brain.mutate()
+        for i in range(len(self.population_a)):
+            choose = randrange(math.floor(len(self.population_a)*0.2)) # randomly choose from top 20%
+            dc = copy.deepcopy(self.population_a[choose])
 
+            r = random()
+            if r < self._MUTATION_RATE:
+                dc.brain.mutate() #apply mutation to new genome
+
+            #dc.brain.crosover() -> bugged
+
+            #create new genome
             genome = neural_network.NeuralNetwork(6, dc.brain.hidden_neurons,
                                                   8, dc.brain.network_connections,
                                                   dc.brain.network_neurons,
@@ -323,10 +324,35 @@ if __name__ == '__main__':
             a = agent.Agent(pos, genome)
             new_pop.append(a)
 
-        network_handler.population_a = new_pop
+        #initialize population with next generation of genomes
+        self.population_a = new_pop
+            
+
+if __name__ == '__main__':
+    _NETWORK_SIZE = 20
+    _GENERATIONS = 100
+
+    global_innovations = neural_network.Innovations(0, {}) # initialize global innovations object
+    network_handler = NetworkHandler(_NETWORK_SIZE)
+    network_handler.init_networks(_NETWORK_SIZE, 0, global_innovations) #create evolving networks
+    network_handler.init_networks(_NETWORK_SIZE, 5, global_innovations) #create fixed networks
+    network_handler.init_resources(_NETWORK_SIZE) #create resources
+    network_handler.init_distances()
+    network_handler.init_angles()
+    
+
+    for i in range(_GENERATIONS):
+        while network_handler.count < _NETWORK_SIZE*2:
+            network_handler.calculate_population()
+
+        network_handler.count = 0
+        network_handler.sort_fitness()
+
+        for i in range(len(network_handler.population_a)):
+            print(network_handler.population_a[i].brain.fitness_score, network_handler.population_b[i].brain.fitness_score)
+
+        network_handler.generate_new_genomes() #generate new population of genomes
+        network_handler.generate_new_fixed_genomes() #generate new population of fixed size genomes
+
         network_handler.init_distances()
         network_handler.init_angles()
-
-        for el in new_pop:
-            print(el.position.x)
-

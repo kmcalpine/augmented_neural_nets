@@ -1,11 +1,8 @@
 ﻿import neural_network 
 import math
-from dataclasses import dataclass
-from dataclasses import field
 from random import random
 
 class Position:
-
     def __init__(self) -> None:
         self.x = math.floor(random()*(random()*100))
         self.y = math.floor(random()*(random()*100))
@@ -15,7 +12,6 @@ class Resource:
         self.position = p
 
 class Agent:
-
     def __init__(self, p: Position, b: neural_network) -> None:
         self.position = p
         self.brain = b
