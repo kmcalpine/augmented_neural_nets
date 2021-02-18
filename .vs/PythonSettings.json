@@ -1,8 +1,0 @@
-{
-  "Interpreter": "Global|PythonCore|3.8",
-  "python.pythonPath": "/path/to/your/venv/bin/python",
-  "TestFramework": "pytest",
-  "UnitTestRootDirectory": "testing",
-  "UnitTestPattern": "test_*.py",
-  "SearchPaths": [ ".\\src" ]
-}
